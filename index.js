@@ -137,9 +137,9 @@ client.on("messageCreate", async (message) => {
 
     // 🎉 Fun Commands
     if (command === "ping") message.channel.send("🏓 Pong!");
-    if (command === "hello") message.channel.send("👋 أهلاً !");
+    if (command === "hello") message.channel.send("👋 أهلاً وسهلاً!");
     if (command === "server") message.channel.send(`اسم السيرفر: ${message.guild.name}`);
 });
 
-// 🔑 تسجيل الدخول بالبـTOKEN
-client.login(process.env.TOKEN);MTQ3Mjg2NjAyNDYzNzU5OTg0OQ.GgqEQz.8bylAjl9WNARH2fRXy248Zkjfp0Hz2FEfx2afc
+// 🔑 تسجيل الدخول بالتوكن
+client.login(process.env.TOKEN);
