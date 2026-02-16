@@ -1,9 +1,6 @@
-const { Client, GatewayIntentBits, Partials, ChannelType } = require("discord.js");
-const { QuickDB } = require("quick.db");
+const { Client, GatewayIntentBits, Partials } = require("discord.js");
 const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require("@discordjs/voice");
 const ytdl = require("ytdl-core");
-
-const db = new QuickDB();
 
 const client = new Client({
     intents: [
@@ -16,12 +13,10 @@ const client = new Client({
     partials: [Partials.Channel]
 });
 
-// ✅ عند تشغيل البوت
 client.once("ready", () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// 📨 استقبال الرسائل وتنفيذ الأوامر
 client.on("messageCreate", async (message) => {
     if (!message.content.startsWith("!") || message.author.bot) return;
 
@@ -32,7 +27,7 @@ client.on("messageCreate", async (message) => {
     if (command === "ticket") {
         const channel = await message.guild.channels.create({
             name: `ticket-${message.author.username}`,
-            type: ChannelType.GuildText,
+            type: 0,
             permissionOverwrites: [
                 { id: message.guild.id, deny: ["ViewChannel"] },
                 { id: message.author.id, allow: ["ViewChannel", "SendMessages"] }
@@ -41,77 +36,47 @@ client.on("messageCreate", async (message) => {
         channel.send(`🎫 أهلاً ${message.author} تم فتح تذكرتك`);
     }
 
-    // ⚠ Warn
-    if (command === "warn") {
-        const user = message.mentions.members.first();
-        if (!user) return message.reply("منشن شخص");
-
-        const reason = args.join(" ") || "بدون سبب";
-        let warns = await db.get(`warn_${user.id}`) || [];
-        warns.push({ reason });
-        await db.set(`warn_${user.id}`, warns);
-
-        message.channel.send(`⚠ تم تحذير ${user}`);
-    }
-
-    if (command === "warnings") {
-        const user = message.mentions.members.first() || message.member;
-        let warns = await db.get(`warn_${user.id}`) || [];
-        message.channel.send(`عدد التحذيرات: ${warns.length}`);
-    }
-
-    if (command === "clearwarn") {
-        const user = message.mentions.members.first();
-        if (!user) return message.reply("منشن عضو لحذف تحذيراته");
-        await db.delete(`warn_${user.id}`);
-        message.channel.send("تم حذف التحذيرات");
-    }
-
     // 🔨 Kick
     if (command === "kick") {
+        if (!message.member.permissions.has("KickMembers")) return;
         const user = message.mentions.members.first();
-        if (!user) return message.reply("منشن عضو للطرد");
+        if (!user) return message.reply("منشن شخص");
         await user.kick();
-        message.channel.send("تم الطرد");
+        message.channel.send("تم الطرد ✅");
     }
 
     // 🔒 Ban
     if (command === "ban") {
+        if (!message.member.permissions.has("BanMembers")) return;
         const user = message.mentions.members.first();
-        if (!user) return message.reply("منشن عضو للباند");
+        if (!user) return message.reply("منشن شخص");
         await user.ban();
-        message.channel.send("تم الباند");
+        message.channel.send("تم الباند ✅");
     }
 
-    // 🎭 Roles
+    // 🎭 Give Role
     if (command === "giverole") {
+        if (!message.member.permissions.has("ManageRoles")) return;
         const user = message.mentions.members.first();
-        const roleName = args.join(" ");
+        const roleName = args.slice(1).join(" ");
         const role = message.guild.roles.cache.find(r => r.name === roleName);
-        if (!role || !user) return message.reply("تأكد من اسم الرتبة والعضو");
+        if (!role || !user) return message.reply("تأكد من الاسم");
         await user.roles.add(role);
-        message.channel.send("تم إعطاء الرتبة");
+        message.channel.send("تم إعطاء الرتبة ✅");
     }
 
+    // ❌ Remove Role
     if (command === "removerole") {
+        if (!message.member.permissions.has("ManageRoles")) return;
         const user = message.mentions.members.first();
-        const roleName = args.join(" ");
+        const roleName = args.slice(1).join(" ");
         const role = message.guild.roles.cache.find(r => r.name === roleName);
-        if (!role || !user) return message.reply("تأكد من اسم الرتبة والعضو");
+        if (!role || !user) return message.reply("تأكد من الاسم");
         await user.roles.remove(role);
-        message.channel.send("تم إزالة الرتبة");
+        message.channel.send("تم إزالة الرتبة ✅");
     }
 
-    // 📝 Nickname
-    if (command === "nick") {
-        const user = message.mentions.members.first();
-        const newName = args.join(" ");
-        if (!user) return message.reply("منشن عضو لتغيير اسمه");
-        await user.setNickname(newName);
-        message.channel.send("تم تغيير الاسم");
-    }
-
-    // 🎵 Music
+    // 🎵 Play Music
     if (command === "play") {
         const voiceChannel = message.member.voice.channel;
         if (!voiceChannel) return message.reply("ادخل روم صوتي");
@@ -132,14 +97,13 @@ client.on("messageCreate", async (message) => {
         player.play(resource);
         connection.subscribe(player);
 
-        message.channel.send("🎶 استمتع بالموسيقى!");
+        message.channel.send("🎶 شغلنا لك المقطع!");
     }
 
-    // 🎉 Fun Commands
+    // 🎉 Fun
     if (command === "ping") message.channel.send("🏓 Pong!");
-    if (command === "hello") message.channel.send("👋 أهلاً وسهلاً!");
+    if (command === "hello") message.channel.send("👋 نورت السيرفر!");
     if (command === "server") message.channel.send(`اسم السيرفر: ${message.guild.name}`);
 });
 
-// 🔑 تسجيل الدخول بالتوكن
 client.login(process.env.TOKEN);
