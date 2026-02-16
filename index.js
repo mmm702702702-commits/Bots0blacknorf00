@@ -142,4 +142,4 @@ client.on("messageCreate", async (message) => {
 });
 
 // 🔑 تسجيل الدخول بالبـTOKEN
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN);MTQ3Mjg2NjAyNDYzNzU5OTg0OQ.GgqEQz.8bylAjl9WNARH2fRXy248Zkjfp0Hz2FEfx2afc
