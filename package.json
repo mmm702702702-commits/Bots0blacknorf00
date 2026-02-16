@@ -1,0 +1,15 @@
+{
+  "name": "mega-discord-bot",
+  "version": "1.0.0",
+  "description": "Powerful Discord Bot with Tickets, Moderation, Roles, Music",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.13.0",
+    "quick.db": "^9.0.0",
+    "ytdl-core": "^4.11.0",
+    "@discordjs/voice": "^0.15.0"
+  }
+}
