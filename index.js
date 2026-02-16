@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits, Partials } = require("discord.js");
+const { Client, GatewayIntentBits, Partials, ChannelType } = require("discord.js");
 const { QuickDB } = require("quick.db");
 const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require("@discordjs/voice");
 const ytdl = require("ytdl-core");
@@ -16,10 +16,12 @@ const client = new Client({
     partials: [Partials.Channel]
 });
 
+// ✅ عند تشغيل البوت
 client.once("ready", () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
+// 📨 استقبال الرسائل وتنفيذ الأوامر
 client.on("messageCreate", async (message) => {
     if (!message.content.startsWith("!") || message.author.bot) return;
 
@@ -30,7 +32,7 @@ client.on("messageCreate", async (message) => {
     if (command === "ticket") {
         const channel = await message.guild.channels.create({
             name: `ticket-${message.author.username}`,
-            type: 0,
+            type: ChannelType.GuildText,
             permissionOverwrites: [
                 { id: message.guild.id, deny: ["ViewChannel"] },
                 { id: message.author.id, allow: ["ViewChannel", "SendMessages"] }
@@ -60,6 +62,7 @@ client.on("messageCreate", async (message) => {
 
     if (command === "clearwarn") {
         const user = message.mentions.members.first();
+        if (!user) return message.reply("منشن عضو لحذف تحذيراته");
         await db.delete(`warn_${user.id}`);
         message.channel.send("تم حذف التحذيرات");
     }
@@ -67,7 +70,7 @@ client.on("messageCreate", async (message) => {
     // 🔨 Kick
     if (command === "kick") {
         const user = message.mentions.members.first();
-        if (!user) return;
+        if (!user) return message.reply("منشن عضو للطرد");
         await user.kick();
         message.channel.send("تم الطرد");
     }
@@ -75,7 +78,7 @@ client.on("messageCreate", async (message) => {
     // 🔒 Ban
     if (command === "ban") {
         const user = message.mentions.members.first();
-        if (!user) return;
+        if (!user) return message.reply("منشن عضو للباند");
         await user.ban();
         message.channel.send("تم الباند");
     }
@@ -85,8 +88,7 @@ client.on("messageCreate", async (message) => {
         const user = message.mentions.members.first();
         const roleName = args.join(" ");
         const role = message.guild.roles.cache.find(r => r.name === roleName);
-        if (!role || !user) return message.reply("تأكد من الاسم");
-
+        if (!role || !user) return message.reply("تأكد من اسم الرتبة والعضو");
         await user.roles.add(role);
         message.channel.send("تم إعطاء الرتبة");
     }
@@ -95,8 +97,7 @@ client.on("messageCreate", async (message) => {
         const user = message.mentions.members.first();
         const roleName = args.join(" ");
         const role = message.guild.roles.cache.find(r => r.name === roleName);
-        if (!role || !user) return;
-
+        if (!role || !user) return message.reply("تأكد من اسم الرتبة والعضو");
         await user.roles.remove(role);
         message.channel.send("تم إزالة الرتبة");
     }
@@ -105,7 +106,7 @@ client.on("messageCreate", async (message) => {
     if (command === "nick") {
         const user = message.mentions.members.first();
         const newName = args.join(" ");
-        if (!user) return;
+        if (!user) return message.reply("منشن عضو لتغيير اسمه");
         await user.setNickname(newName);
         message.channel.send("تم تغيير الاسم");
     }
@@ -131,13 +132,14 @@ client.on("messageCreate", async (message) => {
         player.play(resource);
         connection.subscribe(player);
 
-        message.channel.send("🎶 انطرب يالبى قلبك ");
+        message.channel.send("🎶 استمتع بالموسيقى!");
     }
 
-    // 🎉 Fun
+    // 🎉 Fun Commands
     if (command === "ping") message.channel.send("🏓 Pong!");
-    if (command === "hello") message.channel.send("👋 ارحبووو ي كنق نورتنا !");
+    if (command === "hello") message.channel.send("👋 أهلاً !");
     if (command === "server") message.channel.send(`اسم السيرفر: ${message.guild.name}`);
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// 🔑 تسجيل الدخول بالبـTOKEN
+client.login(process.env.TOKEN);
